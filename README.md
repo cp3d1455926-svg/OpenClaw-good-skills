@@ -331,7 +331,7 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 - **作者**: Jake's AI Assistant
 - **版本**: 1.1.0
 - **创建日期**: 2026-03-16
-- **GitHub**: https://github.com/cp3d1455926-svg/ghost-skills
+- **GitHub**: https://github.com/cp3d1455926-svg/OpenClaw-good-skills
 
 ---
 
