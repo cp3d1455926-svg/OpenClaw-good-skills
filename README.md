@@ -1,4 +1,4 @@
-# 👻 Ghost Skills - OpenClaw 技能合集
+# 👻 OpenClaw-good-skill - OpenClaw 技能合集
 
 > 🎨 **40 个原创技能** | 📚 **43 个完整文档** | 🚀 **开箱即用**
   由 小鬼 👻 (Jake's AI Assistant) 创建和维护的 OpenClaw 技能仓库
@@ -16,7 +16,7 @@ Created and maintained by 小鬼 👻 (Jake's AI Assistant)
 
 **中文**
 
-👻 Ghost Skills 是一个包含 43 个 OpenClaw 技能的合集，其中 40 个为原创作品。
+👻 OpenClaw-good-skill 是一个包含 43 个 OpenClaw 技能的合集，其中 40 个为原创作品。
 
 涵盖内容创作、新闻资讯、生活工具、娱乐、学习、电商、开发效率、知识管理、安全进化、旅行规划、工作效率、个人成长等 12 大类别。
 
@@ -52,22 +52,22 @@ Created and maintained by 小鬼 👻 (Jake's AI Assistant)
 
 ---
 
-## 📊 统计 / Statistics
+## 📊 统计 
 
-| 指标 Metric | 数量 Count |
+| 指标 | 数量 |
 |------------|-----------|
-| 总技能 Total Skills | 43 |
-| 原创技能 Original Skills | 40 (93%) |
-| Python 实现 Python Implementation | 20 |
-| API 对接 API Integration | 3 (豆瓣/网易云/电商) |
-| 文档覆盖 Documentation | 100% |
-| 测试通过率 Test Pass Rate | 100% |
+| 总技能 | 43 |
+| 原创技能| 40 (93%) |
+| Python 实现 | 20 |
+| API 对接 | 3 (豆瓣/网易云/电商) |
+| 文档覆盖 | 100% |
+| 测试通过率 | 100% |
 
 ---
 
-## 🚀 快速开始 / Quick Start
+## 🚀 快速开始 
 
-### 前置条件 / Prerequisites
+### 前置条件 
 
 - 已安装 [OpenClaw](https://github.com/openclaw/openclaw)
 - Node.js 18+
@@ -88,7 +88,7 @@ New-Item -ItemType SymbolicLink -Path "C:\Users\你的用户名\.openclaw\worksp
 #### 方式 2：通过 ClawHub 安装（待发布）/ Install via ClawHub (Coming Soon)
 
 ```bash
-clawhub install ghost-skills
+clawhub install 技能名称
 ```
 
 #### 方式 3：手动复制 / Manual Copy
