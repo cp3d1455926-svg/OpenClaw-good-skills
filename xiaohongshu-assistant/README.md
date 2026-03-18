@@ -2,6 +2,23 @@
 
 > ✍️ **6 种文案风格** | ✅ **安全使用** | 🛡️ **零封号风险**
 
+---
+
+## ⚠️ 需要自动发布功能？
+
+如果你想使用**自动发布功能**（有封号风险），请访问独立仓库：
+
+🔗 **xiaohongshu-auto-publisher**
+- 地址：`workspace/xiaohongshu-auto-publisher`
+- 功能：一键发布、多账号管理
+- 风险：🔴 高（可能封号）
+- 适合：愿意承担风险的高级用户
+
+**本仓库（xiaohongshu-assistant）**：
+- ✅ 仅文案生成（零风险）
+- ✅ 安全使用
+- ✅ 适合所有用户
+
 [![Skills Count](https://img.shields.io/badge/skills-1-red.svg)](./)
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![Safety](https://img.shields.io/badge/Safety-First-green.svg)](./)
