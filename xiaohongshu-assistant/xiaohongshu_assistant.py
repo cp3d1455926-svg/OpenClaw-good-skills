@@ -388,6 +388,121 @@ def main(query):
             if len(parts) > 1:
                 topic = parts[1]
     
+    # ========== 新增：发布功能 ==========
+    # 发布笔记
+    if "发布" in query_lower or "上传" in query_lower:
+        try:
+            from xhs_publisher import publish, check_login, check_xhs_skills
+            from xhs_accounts import get_default
+            
+            # 检查 XiaohongshuSkills
+            ok, msg = check_xhs_skills()
+            if not ok:
+                return f"❌ {msg}\n\n请先克隆 XiaohongshuSkills 仓库"
+            
+            # 检查登录状态
+            account = get_default() or "default"
+            login_status = check_login(account)
+            
+            if not login_status.get("logged_in"):
+                return f"""📕 小红书发布助手
+
+⚠️ 检测到未登录状态
+
+**请先登录**：
+1. 运行命令：`python scripts/cdp_publish.py login`
+2. 在弹出的 Chrome 窗口扫码登录
+3. 登录后再次尝试发布
+
+**发布命令示例**：
+「发布笔记，标题：xxx，内容：xxx」
+「用小红书风格写一篇文案并发布」
+"""
+            
+            # 生成文案
+            title = generate_title(topic, style=detected_style)
+            content = generate_content(topic, style=detected_style)
+            
+            # 提取图片（如果有）
+            images = []
+            # TODO: 实现图片提取逻辑
+            
+            # 发布
+            result = publish(title, content, images=images, account=account, preview=False)
+            
+            if result.get("success"):
+                return f"""✅ **发布成功**！
+
+📕 标题：{title}
+👤 账号：{account}
+🎨 风格：{detected_style}
+
+💡 提示：请前往小红书查看发布效果"""
+            else:
+                return f"❌ 发布失败：{result.get('error', '未知错误')}"
+        
+        except ImportError:
+            return """❌ 发布模块未安装
+
+请运行：
+```
+cd XiaohongshuSkills
+pip install -r requirements.txt
+```
+"""
+        except Exception as e:
+            return f"❌ 发布出错：{str(e)}"
+    
+    # 登录检查
+    if "登录" in query_lower or "login" in query_lower:
+        try:
+            from xhs_publisher import login, check_login
+            from xhs_accounts import get_default
+            
+            account = get_default() or "default"
+            status = check_login(account)
+            
+            if status.get("logged_in"):
+                return f"✅ 账号 {account} 已登录"
+            else:
+                return f"""📕 小红书登录助手
+
+**账号**：{account}
+**状态**：未登录
+
+**登录步骤**：
+1. 运行命令：`python scripts/cdp_publish.py login`
+2. 在弹出的 Chrome 窗口扫码登录
+3. 登录成功后运行「检查登录」验证
+"""
+        except Exception as e:
+            return f"❌ 检查出错：{str(e)}"
+    
+    # 账号管理
+    if "账号" in query_lower or "account" in query_lower:
+        try:
+            from xhs_accounts import list_accounts, get_default
+            
+            accounts = list_accounts()
+            default = get_default()
+            
+            if not accounts:
+                return """📕 账号管理
+
+暂无账号，添加第一个账号：
+「添加账号 test_account 测试账号」
+"""
+            
+            response = "📕 **已配置账号**\n\n"
+            for acc in accounts:
+                mark = "👑 " if acc["name"] == default else ""
+                response += f"{mark}{acc['alias']} (@{acc['name']})\n"
+                response += f"   发布：{acc['publish_count']} 次 | 最后：{acc['last_publish'][:10] if acc['last_publish'] else '无'}\n\n"
+            
+            return response
+        except Exception as e:
+            return f"❌ 获取账号失败：{str(e)}"
+    
     # 生成标题
     if "标题" in query_lower or "起名" in query_lower:
         title = generate_title(topic, style=detected_style)
