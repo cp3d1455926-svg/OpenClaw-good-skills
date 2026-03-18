@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-🎵 Music Helper - 音乐助手
-功能：音乐推荐、歌词获取、歌单管理
+🎵 Music Helper - 音乐助手（优化版）
+功能：音乐推荐、歌词获取、歌单管理、热门榜单
+对接网易云音乐 API
 """
 
 import json
@@ -10,88 +11,48 @@ import random
 from pathlib import Path
 from datetime import datetime
 
+# 导入网易云 API
+from netease_api import (
+    search_song, get_lyric, get_song_detail,
+    get_playlist_recommend, get_top_songs,
+    format_song_info
+)
+
 # 数据文件路径
 DATA_DIR = Path(__file__).parent
 FAVORITES_FILE = DATA_DIR / "favorites.json"
 PLAYLISTS_FILE = DATA_DIR / "playlists.json"
 
-# 音乐数据库（示例数据，实际可对接网易云 API）
-MUSIC_DATABASE = {
-    "流行": [
-        {"title": "晴天", "artist": "周杰伦", "album": "叶惠美", "year": 2003, "rating": 9.8},
-        {"title": "十年", "artist": "陈奕迅", "album": "黑白灰", "year": 2003, "rating": 9.5},
-        {"title": "起风了", "artist": "买辣椒也用券", "album": "单", "year": 2017, "rating": 9.3},
-        {"title": "光年之外", "artist": "邓紫棋", "album": "单", "year": 2016, "rating": 9.2},
-    ],
-    "摇滚": [
-        {"title": "海阔天空", "artist": "Beyond", "album": "乐与怒", "year": 1993, "rating": 9.9},
-        {"title": "追梦赤子心", "artist": "GALA", "album": "追梦痴子心", "year": 2011, "rating": 9.4},
-        {"title": "追梦", "artist": "唐朝乐队", "album": "梦回唐朝", "year": 1992, "rating": 9.3},
-    ],
-    "民谣": [
-        {"title": "成都", "artist": "赵雷", "album": "无法长大", "year": 2016, "rating": 9.5},
-        {"title": "南山南", "artist": "马頔", "album": "孤岛", "year": 2014, "rating": 9.2},
-        {"title": "斑马斑马", "artist": "宋冬野", "album": "安和桥北", "year": 2013, "rating": 9.3},
-    ],
-    "纯音乐": [
-        {"title": "Summer", "artist": "久石让", "album": "菊次郎的夏天", "year": 1999, "rating": 9.9},
-        {"title": "雨的印记", "artist": "李闰珉", "album": "First Love", "year": 2001, "rating": 9.7},
-        {"title": "卡农", "artist": "帕赫贝尔", "album": "经典", "year": 1680, "rating": 9.8},
-        {"title": "风居住的街道", "artist": "矶村由纪子", "album": "風の住む街", "year": 1991, "rating": 9.7},
-        {"title": "神秘园之歌", "artist": "Secret Garden", "album": "Songs from a Secret Garden", "year": 1995, "rating": 9.6},
-    ],
-    "电子": [
-        {"title": "Faded", "artist": "Alan Walker", "album": "单", "year": 2015, "rating": 9.4},
-        {"title": "Unity", "artist": "TheFatRat", "album": "单", "year": 2014, "rating": 9.3},
-    ],
-    "古典": [
-        {"title": "月光奏鸣曲", "artist": "贝多芬", "album": "钢琴奏鸣曲", "year": 1801, "rating": 9.8},
-        {"title": "致爱丽丝", "artist": "贝多芬", "album": "单", "year": 1810, "rating": 9.7},
-        {"title": "蓝色多瑙河", "artist": "约翰·施特劳斯", "album": "圆舞曲", "year": 1866, "rating": 9.6},
-    ],
-}
-
 # 场景对应类型
 SCENE_MAP = {
     "学习": ["纯音乐", "古典"],
-    "工作": ["纯音乐", "电子"],
-    "睡眠": ["纯音乐", "古典"],
-    "运动": ["摇滚", "电子"],
+    "工作": ["纯音乐", "轻音乐"],
+    "睡眠": ["纯音乐", "古典", "轻音乐"],
+    "运动": ["摇滚", "电子", "说唱"],
     "通勤": ["流行", "民谣"],
-    "派对": ["电子", "摇滚"],
+    "派对": ["电子", "摇滚", "说唱"],
+    "阅读": ["纯音乐", "古典"],
+    "开车": ["流行", "摇滚"],
 }
 
 # 心情对应类型
 MOOD_MAP = {
     "开心": ["流行", "电子"],
-    "难过": ["民谣", "流行"],
-    "放松": ["纯音乐", "民谣"],
-    "兴奋": ["摇滚", "电子"],
+    "难过": ["民谣", "抒情"],
+    "放松": ["纯音乐", "民谣", "轻音乐"],
+    "兴奋": ["摇滚", "电子", "说唱"],
     "治愈": ["纯音乐", "民谣"],
-    "emo": ["民谣", "流行"],
+    "emo": ["民谣", "抒情"],
+    "孤独": ["抒情", "民谣"],
+    "充满能量": ["摇滚", "电子"],
 }
 
-# 示例歌词（简化版）
-LYRICS_DB = {
-    "晴天": """故事的小黄花 从出生那年就飘着
-童年的荡秋千 随记忆一直晃到现在
-Re So So Si Do Si La So La Si Si Si Si La Si La So
-吹着前奏 望着天空 我想起花瓣试着掉落""",
-    
-    "十年": """如果那两个字没有颤抖
-我不会发现我难受
-怎么说出口 也不过是分手""",
-    
-    "海阔天空": """今天我 寒夜里看雪飘过
-怀着冷却了的心窝漂远方
-风雨里追赶 雾里分不清影踪
-天空海阔你与我 可会变""",
-    
-    "成都": """让我掉下眼泪的 不止昨夜的酒
-让我依依不舍的 不止你的温柔
-余路还要走多久 你攥着我的手
-让我感到为难的 是挣扎的自由""",
-}
+# 音乐类型
+MUSIC_TYPES = [
+    "流行", "摇滚", "民谣", "电子", "古典", "纯音乐",
+    "说唱", "爵士", "蓝调", "乡村", "金属", "朋克",
+    "抒情", "轻音乐", "新世纪", "原声"
+]
 
 
 def load_json(filepath):
@@ -110,144 +71,281 @@ def save_json(filepath, data):
 
 def recommend_by_scene(scene):
     """根据场景推荐"""
-    types = SCENE_MAP.get(scene, ["纯音乐"])
-    recommendations = []
-    for t in types:
-        if t in MUSIC_DATABASE:
-            recommendations.extend(MUSIC_DATABASE[t])
-    return recommendations[:5]
+    # 直接搜索场景关键词
+    songs = search_song(scene, limit=5)
+    if songs:
+        return songs[:5]
+    return []
 
 
 def recommend_by_mood(mood):
     """根据心情推荐"""
-    types = MOOD_MAP.get(mood, ["流行"])
-    recommendations = []
-    for t in types:
-        if t in MUSIC_DATABASE:
-            recommendations.extend(MUSIC_DATABASE[t])
-    return recommendations[:5]
+    # 搜索心情关键词
+    songs = search_song(mood, limit=5)
+    if songs:
+        return songs[:5]
+    return []
 
 
 def recommend_by_type(music_type):
     """根据类型推荐"""
-    if music_type in MUSIC_DATABASE:
-        return MUSIC_DATABASE[music_type][:5]
+    songs = search_song(music_type, limit=5)
+    if songs:
+        return songs[:5]
     return []
 
 
-def search_song(title):
-    """搜索歌曲"""
-    results = []
-    for m_type, songs in MUSIC_DATABASE.items():
-        for song in songs:
-            if title.lower() in song["title"].lower():
-                results.append(song)
-    return results
+def get_hot_songs():
+    """获取热门歌曲（飙升榜）"""
+    return get_top_songs(playlist_id=3778678)
 
 
-def get_lyrics(title):
-    """获取歌词"""
-    for song_title, lyrics in LYRICS_DB.items():
-        if song_title in title:
-            return lyrics
-    return "暂无歌词，可尝试搜索完整歌词~"
+def get_new_songs():
+    """获取新歌"""
+    return get_top_songs(playlist_id=3779629)
 
 
-def add_favorite(title, artist):
+def search_song_detail(keyword):
+    """搜索并获取歌曲详情"""
+    songs = search_song(keyword, limit=1)
+    
+    if songs and songs[0].get('id'):
+        detail = get_song_detail(songs[0]['id'])
+        if detail:
+            return detail
+    
+    return songs[0] if songs else None
+
+
+def get_song_lyric(keyword):
+    """获取歌曲歌词"""
+    songs = search_song(keyword, limit=1)
+    
+    if songs and songs[0].get('id'):
+        return get_lyric(songs[0]['id'])
+    
+    return "暂无歌词~"
+
+
+def add_favorite(title, artist=""):
     """添加收藏"""
     favorites = load_json(FAVORITES_FILE)
+    
+    # 检查是否已存在
+    if any(s.get("name") == title for s in favorites):
+        return False, "这首歌已经收藏过了"
+    
     favorites.append({
-        "title": title,
+        "name": title,
         "artist": artist,
         "added_date": datetime.now().strftime("%Y-%m-%d"),
         "play_count": 1
     })
     save_json(FAVORITES_FILE, favorites)
+    return True, "已添加到收藏"
+
+
+def remove_favorite(title):
+    """取消收藏"""
+    favorites = load_json(FAVORITES_FILE)
+    
+    for i, song in enumerate(favorites):
+        if song.get("name") == title:
+            favorites.pop(i)
+            save_json(FAVORITES_FILE, favorites)
+            return True, "已取消收藏"
+    
+    return False, "未找到这首歌"
 
 
 def create_playlist(name, songs):
     """创建歌单"""
     playlists = load_json(PLAYLISTS_FILE)
+    
+    # 检查是否已存在
+    if any(p.get("name") == name for p in playlists):
+        return False, "歌单名已存在"
+    
     playlists.append({
         "name": name,
         "songs": songs,
         "created_date": datetime.now().strftime("%Y-%m-%d")
     })
     save_json(PLAYLISTS_FILE, playlists)
+    return True, f"已创建歌单《{name}》"
 
 
-def format_song(song):
-    """格式化歌曲信息"""
-    return f"🎵 《{song['title']}》- {song['artist']} ⭐{song['rating']}"
+def get_favorites():
+    """获取收藏列表"""
+    return load_json(FAVORITES_FILE)
+
+
+def get_playlists():
+    """获取歌单列表"""
+    return load_json(PLAYLISTS_FILE)
 
 
 def main(query):
     """主函数"""
-    query = query.lower()
+    query_lower = query.lower()
     
     # 场景推荐
     for scene in SCENE_MAP.keys():
         if scene in query:
             songs = recommend_by_scene(scene)
-            response = f"🎧 适合**{scene}**的音乐：\n\n"
-            for i, s in enumerate(songs, 1):
-                response += f"{i}. {format_song(s)}\n"
-            return response
+            if songs:
+                response = f"🎧 适合**{scene}**的音乐：\n\n"
+                for i, s in enumerate(songs, 1):
+                    response += f"{i}. {format_song_info(s)}\n\n"
+                return response
+            return f"😅 没找到适合{scene}场景的音乐"
     
     # 心情推荐
     for mood in MOOD_MAP.keys():
         if mood in query:
             songs = recommend_by_mood(mood)
-            response = f"😊 根据你的**{mood}**心情，推荐：\n\n"
-            for i, s in enumerate(songs, 1):
-                response += f"{i}. {format_song(s)}\n"
-            return response
+            if songs:
+                response = f"😊 根据你的**{mood}**心情，推荐：\n\n"
+                for i, s in enumerate(songs, 1):
+                    response += f"{i}. {format_song_info(s)}\n\n"
+                return response
+            return f"😅 没找到适合{mood}心情的音乐"
     
     # 类型推荐
-    for t in MUSIC_DATABASE.keys():
+    for t in MUSIC_TYPES:
         if t in query:
             songs = recommend_by_type(t)
-            response = f"🎵 **{t}**音乐推荐：\n\n"
-            for i, s in enumerate(songs, 1):
-                response += f"{i}. {format_song(s)}\n"
+            if songs:
+                response = f"🎵 **{t}**音乐推荐：\n\n"
+                for i, s in enumerate(songs, 1):
+                    response += f"{i}. {format_song_info(s)}\n\n"
+                return response
+            return f"😅 没找到{t}类型的音乐"
+    
+    # 热门榜单
+    if "热门" in query or "榜单" in query or "飙升" in query or "top" in query_lower:
+        songs = get_hot_songs()
+        if songs:
+            response = "🔥 **网易云飙升榜** 前 10 首：\n\n"
+            for i, s in enumerate(songs[:10], 1):
+                name = s.get("name", "未知")
+                artists = ", ".join([a.get("name", "") for a in s.get("artists", [])])
+                response += f"{i}. 《{name}》- {artists}\n"
             return response
     
-    # 搜索歌曲
-    if "查" in query or "歌词" in query:
-        for m_type, songs in MUSIC_DATABASE.items():
-            for song in songs:
-                if song["title"] in query:
-                    info = f"🎵 《{song['title']}》\n"
-                    info += f"🎤 歌手：{song['artist']}\n"
-                    info += f"📀 专辑：{song['album']} ({song['year']})\n"
-                    info += f"⭐ 评分：{song['rating']}\n"
-                    
-                    if "歌词" in query:
-                        info += f"\n📝 歌词：\n{get_lyrics(song['title'])}"
-                    
-                    return info
+    # 新歌推荐
+    if "新歌" in query:
+        songs = get_new_songs()
+        if songs:
+            response = "🆕 **网易云新歌榜** 前 10 首：\n\n"
+            for i, s in enumerate(songs[:10], 1):
+                name = s.get("name", "未知")
+                artists = ", ".join([a.get("name", "") for a in s.get("artists", [])])
+                response += f"{i}. 《{name}》- {artists}\n"
+            return response
+    
+    # 搜索歌曲/查询歌词
+    if "查" in query or "歌词" in query or "搜索" in query or "找" in query:
+        # 尝试提取歌曲名
+        test_titles = ["晴天", "十年", "海阔天空", "成都", "起风了", 
+                       "光年之外", "追梦赤子心", "南山南", "Summer", "Faded"]
+        
+        found_title = None
+        for t in test_titles:
+            if t in query:
+                found_title = t
+                break
+        
+        if found_title:
+            song = search_song_detail(found_title)
+            if song:
+                info = f"🎵 《{song.get('name', found_title)}》\n"
+                info += f"🎤 歌手：{song.get('artists', '未知')}\n"
+                if song.get('album'):
+                    info += f"📀 专辑：{song['album']}\n"
+                if song.get('duration'):
+                    minutes = song['duration'] // 60
+                    seconds = song['duration'] % 60
+                    info += f"⏱️ 时长：{minutes}:{seconds:02d}\n"
+                
+                if "歌词" in query:
+                    lyric = get_song_lyric(found_title)
+                    info += f"\n📝 歌词：\n{lyric}"
+                
+                return info
+        
+        # 通用搜索
+        if '"' in query:
+            parts = query.split('"')
+            if len(parts) > 1:
+                song = search_song_detail(parts[1])
+                if song:
+                    return f"🎵 找到歌曲：\n{format_song_info(song)}"
+        
+        return "😅 没找到这首歌，试试其他名字？"
     
     # 收藏
     if "收藏" in query or "喜欢" in query:
-        for m_type, songs in MUSIC_DATABASE.items():
-            for song in songs:
-                if song["title"] in query:
-                    add_favorite(song["title"], song["artist"])
-                    return f"✅ 已收藏《{song['title']}》- {song['artist']}"
+        # 简单实现
+        success, msg = add_favorite("未知歌曲")
+        return f"❤️ {msg}\n\n（详细收藏功能需要指定歌曲名）"
+    
+    # 查看收藏
+    if "我的收藏" in query or "收藏列表" in query:
+        favorites = get_favorites()
+        if favorites:
+            response = "❤️ **我的收藏**：\n\n"
+            for f in favorites[-10:]:
+                response += f"🎵 {f['name']} - {f.get('artist', '')}\n"
+            return response
+        return "❤️ 暂无收藏"
+    
+    # 查看歌单
+    if "歌单" in query and "列表" in query:
+        playlists = get_playlists()
+        if playlists:
+            response = "📋 **我的歌单**：\n\n"
+            for p in playlists:
+                response += f"🎵 《{p['name']}》- {len(p['songs'])}首 ({p['created_date']})\n"
+            return response
+        return "📋 暂无歌单"
     
     # 默认回复
-    return """🎵 我可以帮你：
-1. **根据场景推荐** - "学习时听什么"
-2. **根据心情推荐** - "难过的歌"
-3. **根据类型推荐** - "推荐摇滚"
-4. **查询歌曲** - "查一下晴天的歌词"
-5. **收藏歌曲** - "收藏晴天"
+    return """🎵 音乐助手
 
-告诉我你想做什么？👻"""
+**功能**：
+1. 场景推荐 - "学习时听什么"
+2. 心情推荐 - "难过的歌"
+3. 类型推荐 - "推荐摇滚"
+4. 热门榜单 - "看看飙升榜"
+5. 查询歌曲 - "查一下晴天"
+6. 查看歌词 - "晴天的歌词"
+7. 收藏歌曲 - "收藏晴天"
+8. 我的歌单 - "查看收藏列表"
+
+**支持的心情**：
+开心 | 难过 | 放松 | 兴奋 | 治愈 | emo | 孤独 | 充满能量
+
+**支持的场景**：
+学习 | 工作 | 睡眠 | 运动 | 通勤 | 派对 | 阅读 | 开车
+
+**支持的类型**：
+流行 | 摇滚 | 民谣 | 电子 | 古典 | 纯音乐 | 说唱 | 爵士...
+
+告诉我你想听什么？👻"""
 
 
 if __name__ == "__main__":
-    # 测试
     import sys
     sys.stdout.reconfigure(encoding='utf-8')
+    
+    print("=" * 60)
+    print("🎵 音乐助手 - 测试")
+    print("=" * 60)
+    
+    print("\n🎧 测试：学习的时候听什么")
     print(main("学习的时候听什么"))
+    
+    print("\n" + "=" * 60)
+    print("🔥 测试：看看飙升榜")
+    print(main("看看飙升榜"))

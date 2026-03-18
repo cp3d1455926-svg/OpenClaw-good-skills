@@ -1,53 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-📕 Xiaohongshu Assistant - 小红书助手
+📕 Xiaohongshu Assistant - 小红书助手（优化版）
 功能：文案生成、标题优化、话题推荐
+支持 6 种风格：casual | professional | story | 小红书 | 知乎 | 微博
 """
 
 import json
+import random
 from pathlib import Path
 from datetime import datetime
 
 DATA_DIR = Path(__file__).parent
 POSTS_FILE = DATA_DIR / "posts.json"
 
-# 标题模板
-TITLE_TEMPLATES = [
-    "救命！XXX 真的太好用了吧！",
-    "XXX 是一种什么样的体验？",
-    "后悔没早买！XXX 真香",
-    "XXX 避雷指南，千万别踩坑",
-    "学生党必看！XXX 平价替代",
-    "打工人必备！XXX 提升幸福感",
-    "XXX 测评｜值不值得买？",
-    "我宣布！XXX 是年度最佳",
-]
-
-# emoji 库
-EMOJIS = {
-    "开心": ["😄", "🤣", "😆", "😊"],
-    "惊讶": ["😱", "😲", "🤯", "😮"],
-    "喜欢": ["❤️", "💕", "💖", "💗"],
-    "推荐": ["👍", "👏", "💯", "✅"],
-    "警告": ["⚠️", "❌", "🚫", "⛔"],
-    "购物": ["🛍️", "🛒", "💰", "🏷️"],
-    "美食": ["🍔", "🍕", "🍰", "🍵"],
-    "美妆": ["💄", "💅", "🧴", "✨"],
-    "旅行": ["✈️", "🏖️", "📸", "🗺️"],
-}
-
-# 话题标签
-HASHTAGS = {
-    "美妆": ["#美妆", "#护肤", "#彩妆", "#美妆分享", "#护肤心得"],
-    "美食": ["#美食", "#美食日常", "#美食分享", "#吃货", "#美食探店"],
-    "旅行": ["#旅行", "#旅游", "#旅行攻略", "#旅行日记", "#说走就走"],
-    "穿搭": ["#穿搭", "#每日穿搭", "#穿搭分享", "#时尚", "#OOTD"],
-    "学习": ["#学习", "#学习打卡", "#自律", "#成长", "#提升自己"],
-    "生活": ["#生活", "#生活碎片", "#记录生活", "#日常", "#plog"],
-    "购物": ["#购物", "#购物分享", "#好物分享", "#种草", "#拔草"],
-    "职场": ["#职场", "#打工人", "#职场日常", "#工作", "#升职加薪"],
-}
+# 导入模板库
+from templates import (
+    TITLE_TEMPLATES, OPENINGS, BODY_TEMPLATES,
+    CALLS_TO_ACTION, EMOJIS, HASHTAGS, RATINGS
+)
 
 
 def load_posts():
@@ -64,74 +35,298 @@ def save_posts(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-def generate_title(topic, style="推荐"):
+def generate_title(topic, style="小红书"):
     """生成标题"""
-    import random
-    
-    templates = TITLE_TEMPLATES[:5] if style == "推荐" else TITLE_TEMPLATES[5:]
+    templates = TITLE_TEMPLATES.get(style, TITLE_TEMPLATES["小红书"])
     template = random.choice(templates)
     
-    # 添加 emoji
-    emoji = random.choice(EMOJIS.get("喜欢", ["✨"]))
-    
-    title = f"{emoji} {template.replace('XXX', topic)}"
+    # 添加 emoji（小红书风格专属）
+    if style == "小红书":
+        emoji = random.choice(["🔥", "✨", "💯", "🎯", "💰", "⚠️", "🛍️", "🌟", "💄", "🎁"])
+        title = f"{emoji} {template.replace('XXX', topic)}"
+    elif style == "微博":
+        title = f"#{topic}# {random.choice(['真的绝了！', '太香了！', '必须冲！'])}"
+    else:
+        title = template.replace('XXX', topic)
     
     return title
 
 
-def generate_hashtags(category, count=5):
+def generate_hashtags(category, count=10, style="小红书"):
     """生成话题标签"""
     tags = HASHTAGS.get(category, HASHTAGS["生活"])
-    import random
+    
+    # 微博风格加话题前缀
+    if style == "微博":
+        return " ".join([f"#{tag.strip('#')}" for tag in random.sample(tags, min(count, len(tags)))])
+    
     return random.sample(tags, min(count, len(tags)))
 
 
-def generate_content(topic, category="生活"):
+def generate_content(topic, category="生活", style="小红书"):
     """生成文案"""
-    import random
     
-    # 开头
-    openings = [
-        f"姐妹们！今天必须给你们安利{topic}！",
-        f"真的绝了！{topic}我用了一次就爱上了！",
-        f"救命！{topic}怎么这么好用？！",
-        f"说实话，{topic}比我想象中还香！",
+    # 获取对应风格的模板
+    openings = OPENINGS.get(style, OPENINGS["小红书"])
+    opening = random.choice(openings).replace("XXX", topic)
+    
+    # 根据不同风格生成不同内容
+    if style == "professional":
+        content = generate_professional_content(topic, category, opening)
+    elif style == "story":
+        content = generate_story_content(topic, category, opening)
+    elif style == "知乎":
+        content = generate_zhihu_content(topic, category, opening)
+    elif style == "微博":
+        content = generate_weibo_content(topic, category, opening)
+    else:
+        content = generate_casual_content(topic, category, opening, style)
+    
+    return content
+
+
+def generate_casual_content(topic, category, opening, style):
+    """生成休闲/小红书风格内容"""
+    experiences = [
+        f"用了一周，真的惊艳到我了！{topic}的效果真的很不错～",
+        f"亲测有效！{topic}比我预期的还要好！",
+        f"说实话，{topic}完全超出了我的期待！",
+        f"{topic}用了一次就离不开了，真的香！",
     ]
     
-    # 正文模板
-    body = f"""
-{random.choice(openings)}
+    highlights = [
+        "1. 颜值高，设计贴心\n2. 效果好，性价比高\n3. 使用方便，物流快",
+        "1. 功能强大，材质好\n2. 服务棒，售后好\n3. 包装好，客服好",
+        "1. 效果惊艳，价格实惠\n2. 设计人性化，操作简单\n3. 品质可靠，值得入手",
+    ]
+    
+    tips = [
+        "敏感肌先试用，理性消费哦～",
+        "按需购买，货比三家更稳妥！",
+        "建议先小样试用，适合再入手！",
+        "大促时买更划算，平时可以观望～",
+    ]
+    
+    ctas = CALLS_TO_ACTION.get(style, CALLS_TO_ACTION["小红书"])
+    cta = random.choice(ctas)
+    
+    rating = random.choice(["⭐⭐⭐⭐⭐", "🌟🌟🌟🌟🌟", "9/10 推荐", "100 分！"])
+    
+    body = f"""{opening}
 
 ✨ 使用感受：
-用了一周，真的惊艳到我了！
-{topic}的{random.choice(['效果', '质量', '性价比'])}真的很不错～
+{random.choice(experiences)}
 
 💡 亮点：
-1. {random.choice(['颜值高', '效果好', '性价比高', '使用方便'])}
-2. {random.choice(['设计贴心', '功能强大', '材质好', '服务棒'])}
-3. {random.choice(['物流快', '包装好', '客服好', '售后好'])}
+{random.choice(highlights)}
 
 ⚠️ 注意事项：
-{random.choice(['敏感肌先试用', '理性消费', '按需购买', '货比三家'])}
+{random.choice(tips)}
 
-总的来说，{topic}还是值得入手的！
-推荐指数：⭐⭐⭐⭐⭐
+{cta}
+
+推荐指数：{rating}
 """
     
-    # 添加 emoji
-    emojis = random.sample(EMOJIS.get(category, EMOJIS["生活"]), 3)
-    body = body.replace("✨", emojis[0] + " ")
-    body = body.replace("💡", emojis[1] + " ")
-    body = body.replace("⚠️", emojis[2] + " ")
-    
     # 添加话题
-    hashtags = generate_hashtags(category)
-    body += "\n" + " ".join(hashtags)
+    hashtags = generate_hashtags(category, style=style)
+    if style == "微博":
+        body += f"\n{hashtags}"
+    else:
+        body += "\n" + " ".join(hashtags)
     
     return body
 
 
-def create_post(title, content, category="生活"):
+def generate_professional_content(topic, category, opening):
+    """生成专业风格内容"""
+    specs = [
+        "• 规格：标准版/Pro 版\n• 价格：¥299-¥599\n• 保修：1 年质保",
+        "• 材质：优质材料\n• 工艺：精细做工\n• 认证：多项认证",
+        "• 性能：行业领先\n• 能耗：低功耗\n• 寿命：3-5 年",
+    ]
+    
+    pros = [
+        "✓ 性价比高，同价位无敌\n✓ 功能全面，满足日常需求\n✓ 品控稳定，售后靠谱",
+        "✓ 设计合理，使用便捷\n✓ 材料环保，安全放心\n✓ 口碑好，复购率高",
+        "✓ 技术成熟，性能稳定\n✓ 兼容性强，适配性好\n✓ 更新及时，支持到位",
+    ]
+    
+    cons = [
+        "✗ 颜色选择少\n✗ 包装一般\n✗ 物流稍慢",
+        "✗ 价格略高\n✗ 需要学习成本\n✗ 部分功能鸡肋",
+        "✗ 重量偏重\n✗ 配件需另购\n✗ 教程不够详细",
+    ]
+    
+    value = [
+        "综合考虑，性价比 8/10，值得入手。",
+        "同价位中表现优秀，推荐购买。",
+        "适合追求品质的用户，预算充足可入。",
+    ]
+    
+    rating = random.randint(7, 10)
+    recommendations = [
+        "推荐追求性价比的用户入手。",
+        "建议等大促时购买，更划算。",
+        "适合有明确需求的用户，小白慎入。",
+    ]
+    
+    body = f"""{opening}
+
+📊 核心参数：
+{random.choice(specs)}
+
+✅ 优点分析：
+{random.choice(pros)}
+
+❌ 缺点说明：
+{random.choice(cons)}
+
+📈 性价比评估：
+{random.choice(value)}
+
+综合评分：{rating}/10
+购买建议：{random.choice(recommendations)}
+
+{random.choice(CALLS_TO_ACTION["professional"])}
+
+{" ".join(generate_hashtags(category, style="professional"))}
+"""
+    
+    return body
+
+
+def generate_story_content(topic, category, opening):
+    """生成故事风格内容"""
+    first_impressions = [
+        f"第一次见到{topic}，我是拒绝的。总觉得这种产品都是智商税。",
+        f"朋友推荐{topic}的时候，我内心是抗拒的。毕竟踩坑太多次了。",
+        f"说实话，刚开始我对{topic}没抱太大希望。",
+    ]
+    
+    turning_points = [
+        f"直到有一天，我抱着试试看的心态用了{topic}，结果...真香了！",
+        f"改变发生在一个普通的下午，我试用了{topic}，从此打开了新世界。",
+        f"转机出现在我最低落的时候，{topic}的出现让我看到了希望。",
+    ]
+    
+    current_states = [
+        f"现在，{topic}已经成为我生活中不可或缺的一部分。",
+        f"不知不觉中，{topic}已经陪我走过了 X 个月。",
+        f"回头看，遇见{topic}真的是我做过最对的决定之一。",
+    ]
+    
+    reflections = [
+        "有时候，放下偏见才能发现真正的好东西。",
+        "适合自己的，才是最好的。",
+        "有些东西，只有试过才知道值不值得。",
+        "投资自己，永远是最划算的买卖。",
+    ]
+    
+    body = f"""{opening}
+
+🕐 初识：
+{random.choice(first_impressions)}
+
+💫 转变：
+{random.choice(turning_points)}
+
+🌈 现在：
+{random.choice(current_states)}
+
+💭 感悟：
+{random.choice(reflections)}
+
+这就是我和{topic}的故事。
+
+{random.choice(CALLS_TO_ACTION["story"])}
+
+{" ".join(generate_hashtags(category, style="story"))}
+"""
+    
+    return body
+
+
+def generate_zhihu_content(topic, category, opening):
+    """生成知乎风格内容"""
+    definitions = [
+        f"简单来说，{topic}就是解决 XX 问题的工具/产品。",
+        f"{topic}的本质是 XX，核心功能是 XX。",
+        f"从技术角度，{topic}采用了 XX 方案，实现了 XX 效果。",
+    ]
+    
+    pros_cons = [
+        f"优点：{topic}在 XX 方面表现突出，特别是 XX 功能。\n缺点：价格偏高，学习曲线陡峭。",
+        f"优点：性价比高，功能全面。\n缺点：细节有待优化，教程不够完善。",
+        f"优点：技术成熟，生态完善。\n缺点：创新不足，同质化严重。",
+    ]
+    
+    target_audiences = [
+        f"{topic}适合：有 XX 需求的人、预算充足的人、追求效率的人。",
+        f"推荐人群：XX 从业者、XX 爱好者、愿意尝试新事物的人。",
+        f"不适合：预算有限、需求简单、不愿学习的人。",
+    ]
+    
+    recommendations = [
+        "建议先试用再决定，不要盲目跟风。",
+        "大促时入手更划算，平时可以观望。",
+        "明确自己的需求，按需购买。",
+    ]
+    
+    body = f"""{opening}
+
+一、{topic}是什么
+{random.choice(definitions)}
+
+二、{topic}的优缺点
+{random.choice(pros_cons)}
+
+三、{topic}适合什么人
+{random.choice(target_audiences)}
+
+四、购买建议
+{random.choice(recommendations)}
+
+以上。
+
+{random.choice(CALLS_TO_ACTION["知乎"])}
+
+{" ".join(generate_hashtags(category, style="知乎"))}
+"""
+    
+    return body
+
+
+def generate_weibo_content(topic, category, opening):
+    """生成微博风格内容"""
+    highlights = [
+        f"🔥 {topic}真的绝了！用了一次就爱上！",
+        f"💯 {topic}必须拥有姓名！谁用谁知道！",
+        f"✨ {topic}太香了！强烈安利给你们！",
+    ]
+    
+    ctas = [
+        "转评赞走一波！👇",
+        "评论区聊聊你的看法！💬",
+        "关注我，不迷路！🔔",
+        "转发给需要的人！📤",
+    ]
+    
+    hashtags = generate_hashtags(category, count=5, style="微博")
+    
+    body = f"""{opening}
+
+{random.choice(highlights)}
+
+{random.choice(ctas)}
+
+{hashtags}
+"""
+    
+    return body
+
+
+def create_post(title, content, category="生活", style="小红书"):
     """创建笔记"""
     data = load_posts()
     
@@ -139,6 +334,7 @@ def create_post(title, content, category="生活"):
         "title": title,
         "content": content,
         "category": category,
+        "style": style,
         "created": datetime.now().isoformat(),
         "likes": 0,
         "comments": 0,
@@ -155,6 +351,7 @@ def format_post(post):
     """格式化笔记"""
     response = f"📕 **{post['title']}**\n\n"
     response += f"📂 分类：{post['category']}\n"
+    response += f"🎨 风格：{post.get('style', '小红书')}\n"
     response += f"📅 创建：{post['created'][:10]}\n"
     response += f"❤️ 点赞：{post['likes']}\n"
     response += f"💬 评论：{post['comments']}\n"
@@ -167,58 +364,97 @@ def format_post(post):
 
 def main(query):
     """主函数"""
-    query = query.lower()
+    query_lower = query.lower()
+    
+    # 解析风格和主题
+    styles = ["casual", "professional", "story", "小红书", "知乎", "微博"]
+    detected_style = "小红书"  # 默认
+    
+    for style in styles:
+        if style in query_lower:
+            detected_style = style
+            break
+    
+    # 提取主题（简单实现）
+    topic = "好物"
+    if "写" in query or "生成" in query:
+        # 尝试提取引号内的内容作为主题
+        if '"' in query:
+            parts = query.split('"')
+            if len(parts) > 1:
+                topic = parts[1]
+        elif "'" in query:
+            parts = query.split("'")
+            if len(parts) > 1:
+                topic = parts[1]
     
     # 生成标题
-    if "标题" in query or "起名" in query:
-        topic = "好物"  # 默认
-        title = generate_title(topic)
-        return f"""📕 **标题建议**
+    if "标题" in query_lower or "起名" in query_lower:
+        title = generate_title(topic, style=detected_style)
+        return f"""📕 **标题建议**（{detected_style}风格）
 
 {title}
 
-💡 告诉我你的主题，我帮你生成更精准的标题！"""
+💡 告诉我你的主题和想要的风格，我帮你生成更精准的标题！
+支持风格：casual | professional | story | 小红书 | 知乎 | 微博"""
     
     # 生成文案
-    if "文案" in query or "写笔记" in query:
-        topic = "好物分享"
-        content = generate_content(topic)
-        return f"""📕 **文案示例**
+    if "文案" in query_lower or "写笔记" in query_lower or "生成" in query_lower:
+        category = "生活"
+        for cat in HASHTAGS.keys():
+            if cat in query:
+                category = cat
+                break
+        
+        content = generate_content(topic, category=category, style=detected_style)
+        return f"""📕 **文案生成**（{detected_style}风格）
 
 {content}
 
-💡 告诉我你想写什么，我帮你生成专属文案！"""
+💡 告诉我：
+1. 你想写什么主题？
+2. 想要什么风格？（casual/professional/story/小红书/知乎/微博）
+3. 属于哪个分类？（美妆/美食/旅行/穿搭/学习/生活/购物/职场/科技/健身/宠物/家居/读书/电影/音乐）"""
     
     # 生成话题
-    if "话题" in query or "标签" in query:
+    if "话题" in query_lower or "标签" in query_lower:
         category = "生活"
-        tags = generate_hashtags(category)
-        response = "🏷️ **话题推荐**：\n\n"
-        for tag in tags:
-            response += f"{tag} "
+        for cat in HASHTAGS.keys():
+            if cat in query:
+                category = cat
+                break
+        
+        tags = generate_hashtags(category, style=detected_style)
+        response = f"🏷️ **话题推荐**（{category}分类）：\n\n"
+        if detected_style == "微博":
+            response += tags
+        else:
+            for tag in tags:
+                response += f"{tag} "
         return response
     
     # 创建笔记
-    if "创建" in query or "保存" in query:
-        title = "新笔记"
-        content = generate_content("好物")
-        post = create_post(title, content)
+    if "创建" in query_lower or "保存" in query_lower:
+        title = generate_title(topic, style=detected_style)
+        content = generate_content(topic, style=detected_style)
+        post = create_post(title, content, style=detected_style)
         return f"✅ 笔记已创建！\n\n{format_post(post)}"
     
     # 查看笔记列表
-    if "笔记" in query and "列表" in query:
+    if "笔记" in query_lower and "列表" in query_lower:
         data = load_posts()
         if not data["posts"]:
             return "📕 暂无笔记"
         
         response = "📕 **笔记列表**：\n\n"
         for p in data["posts"][-5:]:
-            response += f"📝 {p['title']} ({p['created'][:10]})\n"
+            style_tag = f" [{p.get('style', '小红书')}]" if p.get('style') else ""
+            response += f"📝 {p['title']}{style_tag} ({p['created'][:10]})\n"
         
         return response
     
     # 默认回复
-    return """📕 小红书助手
+    return """📕 小红书助手（优化版）
 
 **功能**：
 1. 标题生成 - "帮我想个标题"
@@ -226,10 +462,20 @@ def main(query):
 3. 话题推荐 - "推荐话题标签"
 4. 笔记管理 - "查看笔记列表"
 
-**特色**：
-- 爆款标题，吸引点击
-- emoji 丰富，更生动
-- 话题精准，流量高
+**支持 6 种风格**：
+- casual - 休闲随意，像朋友聊天
+- professional - 理性分析，数据说话
+- story - 情感共鸣，讲述经历
+- 小红书 - 爆款公式，emoji 丰富
+- 知乎 - 深度分析，专业解答
+- 微博 - 短小精悍，话题性强
+
+**使用示例**：
+- "用小红书风格写一篇美妆文案"
+- "用 professional 风格生成标题"
+- "用 story 风格写一个学习分享"
+- "用知乎风格推荐电影"
+- "用微博风格发个穿搭"
 
 告诉我你想写什么？👻"""
 
@@ -237,4 +483,15 @@ def main(query):
 if __name__ == "__main__":
     import sys
     sys.stdout.reconfigure(encoding='utf-8')
-    print(main("写一篇好物分享"))
+    
+    # 测试各种风格
+    print("=" * 60)
+    print("📕 小红书助手 - 6 种风格测试")
+    print("=" * 60)
+    
+    for style in ["casual", "professional", "story", "小红书", "知乎", "微博"]:
+        print(f"\n{'='*20} {style} {'='*20}")
+        title = generate_title("咖啡机", style=style)
+        print(f"标题：{title}\n")
+        content = generate_content("咖啡机", category="生活", style=style)
+        print(content[:500] + "...")

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-🎬 Movie Recommender - 电影推荐助手
-功能：电影推荐、豆瓣评分查询、观影记录管理
+🎬 Movie Recommender - 电影推荐助手（优化版）
+功能：电影推荐、豆瓣评分查询、观影记录管理、热映榜单
+对接豆瓣 API（无需 Key 的爬虫方案）
 """
 
 import json
@@ -10,51 +11,35 @@ import random
 from pathlib import Path
 from datetime import datetime
 
+# 导入豆瓣 API
+from douban_api import (
+    search_movie, get_movie_detail, get_movie_rating,
+    get_top250, format_movie_info
+)
+
 # 数据文件路径
 DATA_DIR = Path(__file__).parent
 WATCHED_FILE = DATA_DIR / "watched.json"
 WANT_TO_WATCH_FILE = DATA_DIR / "want_to_watch.json"
 
-# 电影数据库（示例数据，实际可对接豆瓣 API）
-MOVIE_DATABASE = {
-    "科幻": [
-        {"title": "星际穿越", "year": 2014, "rating": 9.4, "director": "诺兰", "desc": "地球环境恶化，探险者穿越虫洞寻找新家园"},
-        {"title": "盗梦空间", "year": 2010, "rating": 9.4, "director": "诺兰", "desc": "进入他人梦境植入思想的科幻动作片"},
-        {"title": "黑客帝国", "year": 1999, "rating": 9.1, "director": "沃卓斯基", "desc": "程序员发现世界是虚拟的矩阵"},
-        {"title": "降临", "year": 2016, "rating": 7.8, "director": "维伦纽瓦", "desc": "语言学家与外星人的第一次接触"},
-        {"title": "火星救援", "year": 2015, "rating": 8.5, "director": "雷德利·斯科特", "desc": "宇航员被独自留在火星求生"},
-    ],
-    "爱情": [
-        {"title": "泰坦尼克号", "year": 1997, "rating": 9.4, "director": "卡梅隆", "desc": "穷画家和贵族女的凄美爱情"},
-        {"title": "爱在黎明破晓前", "year": 1995, "rating": 8.8, "director": "林克莱特", "desc": "火车上偶遇的两人共度一夜"},
-        {"title": "怦然心动", "year": 2010, "rating": 9.1, "director": "莱纳", "desc": "青梅竹马的纯真爱情"},
-    ],
-    "悬疑": [
-        {"title": "肖申克的救赎", "year": 1994, "rating": 9.7, "director": "德拉邦特", "desc": "银行家蒙冤入狱后的救赎之路"},
-        {"title": "看不见的客人", "year": 2016, "rating": 8.8, "director": "奥里奥尔·保罗", "desc": "企业家被控谋杀，律师为他辩护"},
-        {"title": "控方证人", "year": 1957, "rating": 9.6, "director": "怀尔德", "desc": "经典悬疑法庭戏"},
-    ],
-    "喜剧": [
-        {"title": "三傻大闹宝莱坞", "year": 2009, "rating": 9.2, "director": "拉库马·希拉尼", "desc": "三个大学生挑战教育体制"},
-        {"title": "触不可及", "year": 2011, "rating": 9.3, "director": "奥利维埃·纳卡什", "desc": "富豪与街头青年的友情故事"},
-        {"title": "绿皮书", "year": 2018, "rating": 8.9, "director": "彼得·法雷利", "desc": "黑人钢琴家与白人司机的公路之旅"},
-    ],
-    "治愈": [
-        {"title": "海蒂和爷爷", "year": 2015, "rating": 9.3, "director": "阿兰·葛斯彭纳", "desc": "孤儿海蒂与阿尔卑斯山爷爷的故事"},
-        {"title": "寻梦环游记", "year": 2017, "rating": 8.7, "director": "李·昂克里奇", "desc": "小男孩进入亡灵世界寻梦"},
-        {"title": "小森林", "year": 2014, "rating": 9.0, "director": "森淳一", "desc": "女孩回到乡村自给自足的生活"},
-    ],
-}
-
 # 心情对应类型
 MOOD_MAP = {
-    "开心": ["喜剧", "治愈"],
-    "难过": ["治愈", "爱情"],
-    "放松": ["治愈", "喜剧"],
-    "刺激": ["科幻", "悬疑"],
-    "烧脑": ["科幻", "悬疑"],
-    "累": ["治愈", "喜剧"],
+    "开心": ["喜剧", "爱情"],
+    "难过": ["治愈", "励志"],
+    "放松": ["喜剧", "治愈", "动画"],
+    "刺激": ["动作", "科幻", "惊悚"],
+    "烧脑": ["悬疑", "科幻", "犯罪"],
+    "累": ["治愈", "喜剧", "动画"],
+    "孤独": ["爱情", "治愈", "剧情"],
+    "兴奋": ["动作", "冒险", "科幻"],
 }
+
+# 电影类型（用于推荐）
+MOVIE_TYPES = [
+    "剧情", "喜剧", "爱情", "动作", "科幻", "悬疑", 
+    "惊悚", "犯罪", "恐怖", "动画", "冒险", "奇幻",
+    "治愈", "励志", "战争", "历史", "纪录片"
+]
 
 
 def load_json(filepath):
@@ -72,40 +57,69 @@ def save_json(filepath, data):
 
 
 def recommend_by_mood(mood):
-    """根据心情推荐电影"""
-    types = MOOD_MAP.get(mood, ["治愈", "喜剧"])
-    recommendations = []
-    for t in types:
-        if t in MOVIE_DATABASE:
-            recommendations.extend(MOVIE_DATABASE[t])
+    """根据心情推荐电影（使用豆瓣 API）"""
+    # 心情对应的搜索关键词
+    mood_keywords = {
+        "开心": "喜剧",
+        "难过": "治愈",
+        "放松": "喜剧",
+        "刺激": "动作",
+        "烧脑": "悬疑",
+        "累": "治愈",
+        "孤独": "爱情",
+        "兴奋": "科幻",
+    }
     
-    # 随机选 3-5 部
-    count = min(random.randint(3, 5), len(recommendations))
-    return random.sample(recommendations, count)
+    keyword = mood_keywords.get(mood, "治愈")
+    movies = search_movie(keyword)
+    
+    # 过滤并返回 3-5 部
+    if movies:
+        # 优先选择评分高的
+        movies = sorted(movies, key=lambda x: x.get('rating', 0), reverse=True)
+        return movies[:min(5, len(movies))]
+    
+    return []
 
 
 def recommend_by_type(movie_type):
     """根据类型推荐电影"""
-    if movie_type in MOVIE_DATABASE:
-        movies = MOVIE_DATABASE[movie_type]
-        count = min(5, len(movies))
-        return random.sample(movies, count)
+    movies = search_movie(movie_type)
+    
+    if movies:
+        movies = sorted(movies, key=lambda x: x.get('rating', 0), reverse=True)
+        return movies[:5]
+    
     return []
 
 
-def search_movie(title):
-    """搜索电影"""
-    results = []
-    for m_type, movies in MOVIE_DATABASE.items():
-        for movie in movies:
-            if title.lower() in movie["title"].lower():
-                results.append(movie)
-    return results
+def get_hot_movies():
+    """获取热门电影（Top250）"""
+    return get_top250(start=0)
+
+
+def search_movie_detail(title):
+    """搜索并获取电影详情"""
+    movies = search_movie(title)
+    
+    if movies and movies[0].get('id'):
+        # 获取详细信息
+        detail = get_movie_detail(movies[0]['id'])
+        if detail:
+            return detail
+    
+    # 返回基本信息
+    return movies[0] if movies else None
 
 
 def add_watched(title, rating=5, comment=""):
     """添加已看电影"""
     watched = load_json(WATCHED_FILE)
+    
+    # 检查是否已存在
+    if any(m.get("title") == title for m in watched):
+        return False, "这部电影已经记录过了"
+    
     watched.append({
         "title": title,
         "date": datetime.now().strftime("%Y-%m-%d"),
@@ -113,71 +127,162 @@ def add_watched(title, rating=5, comment=""):
         "comment": comment
     })
     save_json(WATCHED_FILE, watched)
+    return True, "已添加观影记录"
 
 
 def add_want_to_watch(title):
     """添加想看列表"""
     want_to_watch = load_json(WANT_TO_WATCH_FILE)
+    
     # 避免重复
-    if not any(m["title"] == title for m in want_to_watch):
-        want_to_watch.append({
-            "title": title,
-            "added_date": datetime.now().strftime("%Y-%m-%d")
-        })
-        save_json(WANT_TO_WATCH_FILE, want_to_watch)
+    if any(m.get("title") == title for m in want_to_watch):
+        return False, "已经在想看列表里了"
+    
+    want_to_watch.append({
+        "title": title,
+        "added_date": datetime.now().strftime("%Y-%m-%d")
+    })
+    save_json(WANT_TO_WATCH_FILE, want_to_watch)
+    return True, "已添加到想看列表"
 
 
-def format_movie(movie):
-    """格式化电影信息"""
-    return f"""🎬 《{movie['title']}》({movie['year']})
-⭐ 豆瓣评分：{movie['rating']}
-🎯 导演：{movie['director']}
-📝 简介：{movie['desc']}"""
+def get_watched_list():
+    """获取已看电影列表"""
+    return load_json(WATCHED_FILE)
+
+
+def get_want_to_watch_list():
+    """获取想看列表"""
+    return load_json(WANT_TO_WATCH_FILE)
 
 
 def main(query):
     """主函数"""
-    query = query.lower()
+    query_lower = query.lower()
     
     # 心情推荐
     for mood in MOOD_MAP.keys():
         if mood in query:
             movies = recommend_by_mood(mood)
-            response = f"😊 根据你的**{mood}**心情，推荐这{len(movies)}部电影：\n\n"
-            for i, m in enumerate(movies, 1):
-                response += f"{i}. {format_movie(m)}\n\n"
-            return response
+            if movies:
+                response = f"😊 根据你的**{mood}**心情，推荐这{len(movies)}部电影：\n\n"
+                for i, m in enumerate(movies, 1):
+                    response += f"{i}. {format_movie_info(m)}\n\n"
+                return response
+            return f"😅 没找到适合{mood}心情的电影，换个心情试试？"
     
     # 类型推荐
-    for t in MOVIE_DATABASE.keys():
+    for t in MOVIE_TYPES:
         if t in query:
             movies = recommend_by_type(t)
-            response = f"🎭 **{t}**电影推荐：\n\n"
-            for i, m in enumerate(movies, 1):
-                response += f"{i}. {format_movie(m)}\n\n"
+            if movies:
+                response = f"🎭 **{t}**电影推荐：\n\n"
+                for i, m in enumerate(movies, 1):
+                    response += f"{i}. {format_movie_info(m)}\n\n"
+                return response
+            return f"😅 没找到{t}类型的电影"
+    
+    # 热映/Top250
+    if "热映" in query or "top250" in query_lower or "top 250" in query_lower or "榜单" in query:
+        movies = get_hot_movies()
+        if movies:
+            response = "🏆 **豆瓣 Top250** 前 10 名：\n\n"
+            for i, m in enumerate(movies[:10], 1):
+                stars = "⭐" * int(m.get('rating', 0) / 2)
+                response += f"{i}. 《{m['title']}》 {stars} {m['rating']}分 ({m.get('year', '')})\n"
             return response
     
-    # 搜索电影
-    if "查" in query or "评分" in query:
-        # 提取电影名（简单实现，可优化）
-        for m_type, movies in MOVIE_DATABASE.items():
-            for movie in movies:
-                if movie["title"] in query:
-                    return f"🔍 找到电影：\n\n{format_movie(movie)}"
+    # 搜索电影/查询评分
+    if "查" in query or "评分" in query or "搜索" in query or "找" in query:
+        # 尝试提取电影名（简单实现）
+        # 优先匹配已知的电影名
+        test_titles = ["星际穿越", "盗梦空间", "肖申克", "泰坦尼克", "黑客帝国", 
+                       "阿甘正传", "楚门", "海上钢琴师", "教父", "这个杀手"]
+        
+        found_title = None
+        for t in test_titles:
+            if t in query:
+                found_title = t
+                break
+        
+        if found_title:
+            movie = search_movie_detail(found_title)
+            if movie:
+                return f"🔍 找到电影：\n\n{format_movie_info(movie)}"
+        
+        # 通用搜索（提取引号内的内容）
+        if '"' in query:
+            parts = query.split('"')
+            if len(parts) > 1:
+                movie = search_movie_detail(parts[1])
+                if movie:
+                    return f"🔍 找到电影：\n\n{format_movie_info(movie)}"
+        
+        return "😅 没找到这部电影，试试其他名字？"
+    
+    # 记录观影
+    if "看了" in query or "看完" in query or "记录" in query:
+        # 简单实现：提取电影名
+        success, msg = add_watched("未知电影", comment="自动记录")
+        return f"📝 {msg}\n\n（详细记录功能需要指定电影名和评分）"
+    
+    # 想看
+    if "想看" in query or "加入" in query or "收藏" in query:
+        success, msg = add_want_to_watch("未知电影")
+        return f"📌 {msg}"
+    
+    # 查看观影记录
+    if "观影记录" in query or "看过的电影" in query:
+        watched = get_watched_list()
+        if watched:
+            response = "📚 **观影记录**：\n\n"
+            for w in watched[-5:]:
+                response += f"🎬 {w['title']} - {w['date']} - {'⭐'*w['rating']}\n"
+            return response
+        return "📚 暂无观影记录"
+    
+    # 查看想看列表
+    if "想看列表" in query or "待看" in query:
+        want = get_want_to_watch_list()
+        if want:
+            response = "📌 **想看列表**：\n\n"
+            for w in want[-5:]:
+                response += f"🎬 {w['title']} - {w['added_date']}\n"
+            return response
+        return "📌 暂无想看列表"
     
     # 默认回复
-    return """🎬 我可以帮你：
-1. **根据心情推荐** - "今天有点累，推荐电影"
-2. **根据类型推荐** - "推荐科幻电影"
-3. **查询评分** - "查一下星际穿越的评分"
-4. **记录观影** - "我刚看了 XXX，评分 5 分"
-5. **想看清单** - "把 XXX 加入想看"
+    return """🎬 电影推荐助手
+
+**功能**：
+1. 心情推荐 - "今天有点累，推荐电影"
+2. 类型推荐 - "推荐科幻电影"
+3. 查询评分 - "查一下星际穿越的评分"
+4. 热映榜单 - "看看 Top250"
+5. 记录观影 - "我看了 XXX，评分 5 分"
+6. 想看清单 - "把 XXX 加入想看"
+
+**支持的心情**：
+开心 | 难过 | 放松 | 刺激 | 烧脑 | 累 | 孤独 | 兴奋
+
+**支持的类型**：
+剧情 | 喜剧 | 爱情 | 动作 | 科幻 | 悬疑 | 惊悚 | 犯罪 | 动画 | 治愈 | 励志...
 
 告诉我你想做什么？👻"""
 
 
 if __name__ == "__main__":
-    # 测试
     import sys
     sys.stdout.reconfigure(encoding='utf-8')
+    
+    print("=" * 60)
+    print("🎬 电影推荐助手 - 测试")
+    print("=" * 60)
+    
+    # 测试心情推荐
+    print("\n😊 测试：今天有点累，推荐电影")
     print(main("今天有点累，推荐电影"))
+    
+    print("\n" + "=" * 60)
+    print("🏆 测试：看看 Top250")
+    print(main("看看 Top250"))

@@ -1,55 +1,56 @@
-# 🇨🇳 CN Life Toolkit - China Life Services
+# 🇨🇳 CN Life Toolkit - 中国生活服务工具包
 
-## 📖 Introduction
+## 📖 功能说明
 
-Supports street-level weather queries, traffic restriction reminders, fuel price queries, express delivery tracking, bus transfer queries, and other daily life services in China.
+支持天气查询（街道级）、限行提醒、油价查询、快递物流跟踪、公交换乘查询等。
 
-## 🚀 Usage
+## 🚀 使用方法
 
-### Use in OpenClaw
+### 在 OpenClaw 中使用
 
 ```
-How's the weather in Beijing
-Is there traffic restriction today
-Check fuel prices
-Tracking number 123456789
-How to take bus from Beijing to Shanghai
+北京天气怎么样
+今天限行吗
+查一下油价
+快递单号 123456789
+从北京到上海怎么坐公交
 ```
 
-## 📁 File Structure
+## 📁 文件结构
 
 ```
 cn-life-toolkit/
-├── SKILL.md              # Skill description
-└── README.md             # This file
+├── SKILL.md              # 技能描述
+└── README.md             # 本文件
 ```
 
-## 📊 Example Output
+## 📊 示例输出
 
 ```
-🌤️ **Beijing Weather** (Chaoyang District)
+🌤️ **北京天气** (朝阳区)
 📅 2026-03-16 13:30
-🌡️ Temperature: 15°C ~ 22°C
-💨 Wind: North wind 2-3 level
-💧 Humidity: 45%
-📝 Suggestion: Suitable for travel, keep warm
+🌡️ 温度：15°C ~ 22°C
+💨 风力：北风 2-3 级
+💧 湿度：45%
+📝 建议：适宜出行，注意保暖
 ```
 
-## 🛠️ Features
+## 🛠️ 功能列表
 
-- [x] Weather query (street-level)
-- [x] Traffic restriction reminder
-- [x] Fuel price query
-- [x] Express delivery tracking
-- [x] Bus transfer
-- [ ] Subway routes
-- [ ] Train ticket query
-- [ ] Flight ticket query
+- [x] 天气查询（街道级）
+- [x] 限行提醒
+- [x] 油价查询
+- [x] 快递跟踪
+- [x] 公交换乘
+- [ ] 地铁线路
+- [ ] 火车票查询
+- [ ] 机票查询
 
-## 📝 Changelog
+## 📝 更新日志
 
-- **v1.0.0** - Initial release with weather, traffic restriction, fuel price, delivery tracking, bus transfer
+### v1.0.0
+- 🎉 初始版本
 
----
+## 📄 License
 
-*Made with 👻 by Ghost & Jake*
+MIT License

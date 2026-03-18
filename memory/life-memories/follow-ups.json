@@ -14,36 +14,27 @@
       "task": "小红书助手优化（文案模板库）",
       "due_date": "2026-03-19",
       "priority": "🔴高",
-      "status": "待开始",
+      "status": "✅ 完成",
       "related_to": "Ghost Skills 12 天冲刺",
-      "notes": "Day 3 任务"
-    },
-    {
-      "id": "FU-002",
-      "task": "小红书助手优化（文案模板库）",
-      "due_date": "2026-03-19",
-      "priority": "🔴高",
-      "status": "待开始",
-      "related_to": "Ghost Skills 12 天冲刺",
-      "notes": "Day 3 任务"
+      "notes": "Day 3 任务 - 创建 templates.py 模板库，支持 6 种风格文案生成"
     },
     {
       "id": "FU-003",
       "task": "电影推荐 - 豆瓣 API 对接",
       "due_date": "2026-03-20",
       "priority": "🟡中",
-      "status": "待开始",
+      "status": "✅ 完成",
       "related_to": "Ghost Skills 12 天冲刺",
-      "notes": "Day 4 任务"
+      "notes": "Day 4 任务 - 完善 douban_api.py，添加爬虫方案 + 缓存机制 + 备用数据"
     },
     {
       "id": "FU-004",
       "task": "音乐助手 - 网易云 API 对接",
       "due_date": "2026-03-21",
       "priority": "🟡中",
-      "status": "待开始",
+      "status": "✅ 完成",
       "related_to": "Ghost Skills 12 天冲刺",
-      "notes": "Day 5 任务"
+      "notes": "Day 5 任务 - 完善 netease_api.py，添加缓存 + 重试 + 备用数据"
     },
     {
       "id": "FU-005",
@@ -74,5 +65,5 @@
     }
   ],
 
-  "last_updated": "2026-03-17"
+  "last_updated": "2026-03-18"
 }

@@ -1,30 +1,26 @@
-# 📋 Quiz Generator - Test & Questionnaire Generator
+# 📋 Quiz Generator - 测试问卷生成器
 
-## 📖 Introduction
+## 📖 功能说明
 
-Supports automatic generation of psychological tests, personality tests, and questionnaires.
+支持心理测试、性格测试、问卷调查自动生成。
 
-## 🚀 Usage
+## 🚀 使用方法
 
 ```
-Generate a psychological test
-Create a personality test questionnaire
-Help me design a satisfaction survey
+生成一个心理测试
+创建一个性格测试问卷
+帮我设计满意度调查
 ```
 
-## 🛠️ Features
+## 🛠️ 功能
 
-- [x] Psychological test generation
-- [x] Personality test
-- [x] Questionnaire design
-- [x] Scoring system
-- [ ] Result analysis
-- [ ] Online publishing
+- [x] 心理测试生成
+- [x] 性格测试
+- [x] 问卷调查
+- [x] 评分系统
+- [ ] 结果分析
+- [ ] 在线发布
 
 ## 📄 License
 
 MIT License
-
----
-
-*Made with 👻 by Ghost & Jake*
