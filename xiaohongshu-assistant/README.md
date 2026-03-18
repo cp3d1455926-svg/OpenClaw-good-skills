@@ -9,7 +9,7 @@
 如果你想使用**自动发布功能**（有封号风险），请访问独立仓库：
 
 🔗 **xiaohongshu-auto-publisher**
-- 地址：`workspace/xiaohongshu-auto-publisher`
+- 地址：https://gitee.com/Jake26602/xiaohongshu-auto-publisher
 - 功能：一键发布、多账号管理
 - 风险：🔴 高（可能封号）
 - 适合：愿意承担风险的高级用户
