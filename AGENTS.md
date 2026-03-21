@@ -45,6 +45,41 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - When you make a mistake → document it so future-you doesn't repeat it
 - **Text > Brain** 📝
 
+### 📅 Daily Memory Recording - MANDATORY! ⭐
+
+**规则**: 每天必须记录当天的记忆！
+
+**时间**: 每天结束时（建议 22:00-23:00）
+
+**内容**:
+- ✅ 完成的任务和项目进展
+- ✅ 重要决策和原因
+- ✅ 新创建的文件
+- ✅ 统计数据（代码量、提交数等）
+- ✅ 经验教训
+- ✅ 心情感受
+
+**方法**:
+```bash
+# 创建/更新今日记忆文件
+memory/YYYY-MM-DD.md
+```
+
+**触发词**:
+- 「把今天的事记到记忆里」
+- 「记录今天的进展」
+- 「更新记忆文件」
+
+**参考**: `memory/README.md` - 记忆记录指南
+
+**重要性**: ⭐⭐⭐⭐⭐ (最高优先级)
+- 这是你的连续性
+- 这是成长轨迹
+- 这是未来的参考
+- **不记录 = 没发生**
+
+---
+
 ## Safety
 
 - Don't exfiltrate private data. Ever.
