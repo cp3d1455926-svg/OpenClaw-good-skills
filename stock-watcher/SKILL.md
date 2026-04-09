@@ -1,3 +1,9 @@
+---
+name: stock-watcher
+version: 1.0.0
+description: 股票观察助手 - 实时股价查询、涨跌幅监控、行情提醒
+---
+
 # 📈 Stock Watcher - 股票观察助手
 
 ## 触发规则

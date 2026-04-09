@@ -49,7 +49,9 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 
 **规则**: 每天必须记录当天的记忆！
 
-**时间**: 每天结束时（建议 22:00-23:00）
+**时间**: 
+- 开机后：立即创建当日日记
+- 每次对话后：必须修改编辑日记
 
 **内容**:
 - ✅ 完成的任务和项目进展
@@ -58,6 +60,7 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - ✅ 统计数据（代码量、提交数等）
 - ✅ 经验教训
 - ✅ 心情感受
+- ✅ 对话内容和用户反馈
 
 **方法**:
 ```bash

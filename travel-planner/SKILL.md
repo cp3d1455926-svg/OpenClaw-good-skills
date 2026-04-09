@@ -1,3 +1,9 @@
+---
+name: travel-planner
+version: 1.0.0
+description: 旅行规划助手 - 行程规划、景点推荐、预算估算、打包清单
+---
+
 # ✈️ Travel Planner v2.0 - 旅行规划助手
 
 ## 触发规则

@@ -1,3 +1,9 @@
+---
+name: expense-tracker
+version: 1.0.0
+description: 记账助手 - 支出记录、收入统计、预算管理
+---
+
 # 💰 Expense Tracker v2.0 - 记账助手
 
 ## 触发规则

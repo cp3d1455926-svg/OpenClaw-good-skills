@@ -1,14 +1,24 @@
+# -*- coding: utf-8 -*-
 # Tavily Search - 主程序
 # 使用 Tavily API 进行智能搜索
 
 import requests
+import sys
 import json
 import os
 from typing import List, Dict
 
 class TavilySearch:
     def __init__(self):
+        # 优先从环境变量读取，其次从 skill.json 读取
         self.api_key = os.getenv('TAVILY_API_KEY', '')
+        if not self.api_key:
+            try:
+                with open(os.path.join(os.path.dirname(__file__), 'skill.json'), 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                    self.api_key = config.get('config', {}).get('apiKey', '')
+            except:
+                pass
         self.base_url = 'https://api.tavily.com/search'
         
     def search(self, query: str, search_depth: str = 'basic', 
@@ -108,6 +118,9 @@ class TavilySearch:
 # 命令行使用示例
 if __name__ == '__main__':
     import sys
+    
+    # 设置控制台输出为 UTF-8
+    sys.stdout.reconfigure(encoding='utf-8')
     
     search = TavilySearch()
     

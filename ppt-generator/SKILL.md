@@ -1,3 +1,9 @@
+---
+name: ppt-generator
+version: 1.0.0
+description: PPT 生成助手 - 自动生成演示文稿、大纲、配图建议
+---
+
 # 📊 PPT Generator - PPT 生成助手
 
 ## 触发规则

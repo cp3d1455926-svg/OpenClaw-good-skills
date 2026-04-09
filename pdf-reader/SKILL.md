@@ -1,3 +1,9 @@
+---
+name: pdf-reader-cp3d
+version: 1.0.0
+description: PDF 阅读助手 - PDF 转 Markdown、智能摘要、重点提取
+---
+
 # 📄 PDF Reader - PDF 阅读助手
 
 ## 触发规则

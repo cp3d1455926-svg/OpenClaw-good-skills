@@ -31,12 +31,12 @@
     }
   ],
   "config": {
-    "apiKey": "",
+    "apiKey": "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",
     "searchDepth": "basic",
     "maxResults": 10,
     "includeImages": false
   },
   "env": {
-    "TAVILY_API_KEY": "required"
+    "TAVILY_API_KEY": "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"
   }
 }

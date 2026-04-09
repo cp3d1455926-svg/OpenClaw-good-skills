@@ -1,3 +1,9 @@
+---
+name: calendar-manager
+version: 1.0.0
+description: 日历管理助手 - 日程安排、会议提醒、时间管理
+---
+
 # 📅 Calendar Manager - 日历管理助手
 
 ## 触发规则

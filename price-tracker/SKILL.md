@@ -1,3 +1,9 @@
+---
+name: price-tracker
+version: 1.0.0
+description: 价格监控助手 - 电商价格追踪、降价提醒、历史价格查询
+---
+
 # 💰 Price Tracker - 价格监控助手
 
 ## 触发规则

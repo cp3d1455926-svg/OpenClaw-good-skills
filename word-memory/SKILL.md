@@ -1,3 +1,9 @@
+---
+name: word-memory
+version: 1.0.0
+description: 单词记忆助手 - 艾宾浩斯记忆曲线、每日打卡、词汇测试
+---
+
 # 📚 Word Memory - 单词记忆助手
 
 ## 触发规则

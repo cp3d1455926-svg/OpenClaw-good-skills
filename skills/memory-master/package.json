@@ -1,0 +1,52 @@
+{
+  "name": "memory-master",
+  "version": "3.0.0-dev",
+  "description": "Local memory system with 4 memory types, time tree structure, and 5 query types",
+  "main": "src/memory-manager.js",
+  "scripts": {
+    "init": "node scripts/init.js",
+    "detect": "node scripts/detect.js",
+    "test": "node src/memory-manager.js",
+    "test:classifier": "node src/memory-classifier.js",
+    "test:time-tree": "node src/time-tree.js",
+    "test:query": "node src/query-classifier.js",
+    "build": "echo 'No build step required'"
+  },
+  "keywords": [
+    "memory",
+    "recall",
+    "indexing",
+    "context",
+    "openclaw",
+    "skill",
+    "ai-agent"
+  ],
+  "author": "李哲龙 × Jake",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {},
+  "files": [
+    "SKILL.md",
+    "SKILL-zh.md",
+    "README.md",
+    "ROADMAP.md",
+    "src/",
+    "scripts/",
+    "templates/",
+    "config/",
+    "package.json",
+    "_meta.json"
+  ],
+  "clawdhub": {
+    "initScript": "scripts/init.js",
+    "requiresNode": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/Jake26602/openclaw-memory-master"
+  },
+  "bugs": {
+    "url": "https://gitee.com/Jake26602/openclaw-memory-master/issues"
+  },
+  "homepage": "https://openclaw-memory-master.netlify.app"
+}

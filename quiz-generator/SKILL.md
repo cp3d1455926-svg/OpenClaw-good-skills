@@ -1,5 +1,6 @@
 ---
-name: quiz-generator
+name: quiz-generator-cp3d
+version: 1.0.0
 description: 测试问卷生成器。支持心理测试、性格测试、问卷调查自动生成。
 ---
 

@@ -1,3 +1,9 @@
+---
+name: recipe-finder
+version: 1.0.0
+description: 菜谱助手 - 根据食材推荐菜谱、烹饪方法指导
+---
+
 # 🍳 Recipe Finder - 菜谱助手
 
 ## 触发规则

@@ -1,3 +1,9 @@
+---
+name: habit-tracker
+version: 1.0.0
+description: 习惯养成助手 - 每日打卡、习惯追踪、成就系统
+---
+
 # 🎯 Habit Tracker v2.0 - 习惯养成助手
 
 ## 触发规则

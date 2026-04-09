@@ -1,3 +1,9 @@
+---
+name: music-helper
+description: 音乐助手 - 歌曲推荐、歌单生成、音乐搜索、歌词获取
+version: 1.0.0
+---
+
 # 🎵 Music Helper - 音乐助手
 
 ## 触发规则
